@@ -8,9 +8,12 @@ dataPeriod = 30# minute
 meanPeriod = [5,25,75]# day
 for i in meanPeriod:
 	df["mean"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).mean()
+
+bbandPeriod = [5,20]
+for i in bbandPeriod:
 	df["std"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).std()# sample standard deviation
-	df["bband+2σ"+str(i)] = df["mean"+str(i)] + (2*df["std"+str(i)])# Bollinger Band
-	df["bband-2σ"+str(i)] = df["mean"+str(i)] - (2*df["std"+str(i)])# ref: https://www.moneypartners.co.jp/support/tech/bolb.html
+	df["bband+2σ"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).mean() + (2*df["std"+str(i)])# Bollinger Band
+	df["bband-2σ"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).mean() - (2*df["std"+str(i)])# ref: https://www.moneypartners.co.jp/support/tech/bolb.html
 
 # Ichimoku cloud
 # https://www.moneypartners.co.jp/support/tech/ichimoku.html
@@ -27,5 +30,8 @@ print(df)
 # for i in ["mean","ITLine","IBLine","IPSpan1","IPSpan2","ILSpan"]:
 	# plt.plot(df["datetime"],df[i],label = i)
 
+bbandLabels = ["bband+2σ"+str(i) for i in bbandPeriod] + ["bband-2σ"+str(i) for i in bbandPeriod] 
+for i in ["mean"]+bbandLabels:
+	plt.plot(df["datetime"],df[i],label =i)
 plt.legend()
 plt.show()
