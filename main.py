@@ -7,8 +7,8 @@ dataPeriod = 30# minute
 # calc moving average
 meanPeriod = [5,25,75]# day
 for i in meanPeriod:
-	df["mean"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod),center=True).mean()
-	df["std"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod),center=True).std()# sample standard deviation
+	df["mean"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).mean()
+	df["std"+str(i)] = df["mean"].rolling(int(i*24*60/dataPeriod)).std()# sample standard deviation
 	df["bband+2σ"+str(i)] = df["mean"+str(i)] + (2*df["std"+str(i)])# Bollinger Band
 	df["bband-2σ"+str(i)] = df["mean"+str(i)] - (2*df["std"+str(i)])# ref: https://www.moneypartners.co.jp/support/tech/bolb.html
 
