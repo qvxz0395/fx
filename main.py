@@ -12,14 +12,20 @@ for i in meanPeriod:
 	df["bband+2σ"+str(i)] = df["mean"+str(i)] + (2*df["std"+str(i)])# Bollinger Band
 	df["bband-2σ"+str(i)] = df["mean"+str(i)] - (2*df["std"+str(i)])# ref: https://www.moneypartners.co.jp/support/tech/bolb.html
 
+# Ichimoku cloud
+# https://www.moneypartners.co.jp/support/tech/ichimoku.html
 
+df["ITLine"] = (df['mean'].rolling(int(9*24*60/dataPeriod)).max()+df['mean'].rolling(int(9*24*60/dataPeriod)).min())/2
+df["IBLine"] = (df['mean'].rolling(int(26*24*60/dataPeriod)).max()+df['mean'].rolling(int(9*24*60/dataPeriod)).min())/2
+df["IPSpan1"] = ((df["ITLine"] + df ["IBLine"])/2).shift(int(26*24*60/dataPeriod))
+df["IPSpan2"] = ((df['mean'].rolling(int(52*24*60/dataPeriod)).max()+df['mean'].rolling(int(9*24*60/dataPeriod)).min())/2).shift(int(26*24*60/dataPeriod))
+df["ILSpan"] = df["close"].shift(-1*int(26*24*60/dataPeriod))
 
 print(df)
 
-plt.plot(df.index,df["mean"],label = "mean")
-for i in meanPeriod:
-	plt.plot(df.index,df["mean"+str(i)],label ="mean"+str(i))
-	plt.plot(df.index,df["bband+2σ"+str(i)],label = "bband+2σ"+str(i))
-	plt.plot(df.index,df["bband-2σ"+str(i)],label = "bband-2σ"+str(i))
+#plot Ichimoku cloud
+# for i in ["mean","ITLine","IBLine","IPSpan1","IPSpan2","ILSpan"]:
+	# plt.plot(df["datetime"],df[i],label = i)
+
 plt.legend()
 plt.show()
