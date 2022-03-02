@@ -43,4 +43,8 @@
 # 実装環境
 言語：　python3.10
 
+# memo
+使用ライブラリ
+Backtesting
+https://yuyasugano.medium.com/backtesting-py%E3%82%92%E3%81%AF%E3%81%98%E3%82%81%E3%81%8B%E3%82%89-backtesting-0-1-7-7b7aa2c662df
 
