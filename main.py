@@ -44,10 +44,10 @@ bt = Backtest(
 # stats = bt.run() # バックテストを実行
 # print(stats) # バックテストの結果を表示
 periods = dict({	"n1min":24,
-				"n1max":24*7+1,
+				"n1max":24*14+1,
 				"n1step":12,
-				"n2min":24,
-				"n2max":24*7+1,
+				"n2min":24*2,
+				"n2max":24*14+1,
 				"n2step":12
 				})
 
