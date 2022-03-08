@@ -43,12 +43,12 @@ bt = Backtest(
 
 # stats = bt.run() # バックテストを実行
 # print(stats) # バックテストの結果を表示
-periods = dict({	"n1min":1,
-				"n1max":13,
-				"n1step":3,
-				"n2min":1,
-				"n2max":25,
-				"n2step":3
+periods = dict({	"n1min":24,
+				"n1max":24*7+1,
+				"n1step":12,
+				"n2min":24,
+				"n2max":24*7+1,
+				"n2step":12
 				})
 
 r_n1 = range(periods["n1min"],periods["n1max"],periods["n1step"])
