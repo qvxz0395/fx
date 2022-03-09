@@ -20,8 +20,8 @@ def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
 
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 10 #hours
-	n2  = 30 #hours
+	n1= 264 #hours
+	n2  = 2784 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
@@ -41,14 +41,14 @@ bt = Backtest(
 	margin=1,
 	exclusive_orders=True)
 
-# stats = bt.run() # バックテストを実行
-# print(stats) # バックテストの結果を表示
-periods = dict({	"n1min":24,
-				"n1max":24*14+1,
-				"n1step":12,
-				"n2min":24*2,
-				"n2max":24*14+1,
-				"n2step":12
+stats = bt.run() # バックテストを実行
+print(stats) # バックテストの結果を表示
+periods = dict({	"n1min":24*5,
+				"n1max":24*30*3+1,
+				"n1step":24*3,
+				"n2min":24*14,
+				"n2max":24*30*6+1,
+				"n2step":24*3
 				})
 
 r_n1 = range(periods["n1min"],periods["n1max"],periods["n1step"])
