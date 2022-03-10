@@ -20,8 +20,8 @@ def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
 
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 264 #hours
-	n2  = 2784 #hours
+	n1= 12 #hours
+	n2  = 72 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
@@ -29,12 +29,14 @@ class SmaCross(Strategy): # 今回はサンプルとして良く採用される�
 
 	def next(self): # ヒストリカルデータの行ごとに呼び出される処理
 		if crossover(self.ma1, self.ma2): # ma1がma2を上回った時（つまりゴールデンクロス）
+			self.position.close() 
 			self.buy() # 買い
 		elif crossover(self.ma2, self.ma1): # ma1がma2を下回った時（つまりデッドクロス）
 			self.position.close() # 売り
+			self.sell() # 買い
 
 bt = Backtest(
-	data,
+	data[-10000:],
 	SmaCross,
 	cash=lot,
 	commission=pips_yen,
@@ -42,13 +44,14 @@ bt = Backtest(
 	exclusive_orders=True)
 
 stats = bt.run() # バックテストを実行
-print(stats) # バックテストの結果を表示
-periods = dict({	"n1min":24*5,
-				"n1max":24*30*3+1,
-				"n1step":24*3,
-				"n2min":24*14,
-				"n2max":24*30*6+1,
-				"n2step":24*3
+bt.plot()
+# print(stats) # バックテストの結果を表示
+periods = dict({	"n1min":1,
+				"n1max":13,
+				"n1step":3,
+				"n2min":1,
+				"n2max":25,
+				"n2step":3
 				})
 
 r_n1 = range(periods["n1min"],periods["n1max"],periods["n1step"])
