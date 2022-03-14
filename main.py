@@ -2,26 +2,25 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import funcs as f
+import seaborn as sns
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
+from skopt.plots import plot_objective
 
 data = pd.read_pickle('datas.pkl')# read data
 dataPeriod = 30# minute
 
-# sankou https://kabu-fx-frontier.com/2020/09/05/pl-simulatino/
-lot = 1000
-pips_yen = 0.005
+lot = 100000
 slippage_pips = 1
-spread_pips =1
-cost_pips = slippage_pips+spread_pips
+spread_pips =0.002# 0.2銭 楽天
 
 def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
 
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 12 #hours
-	n2  = 72 #hours
+	n1= 575 #hours
+	n2  = 722 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
@@ -29,43 +28,45 @@ class SmaCross(Strategy): # 今回はサンプルとして良く採用される�
 
 	def next(self): # ヒストリカルデータの行ごとに呼び出される処理
 		if crossover(self.ma1, self.ma2): # ma1がma2を上回った時（つまりゴールデンクロス）
-			self.position.close() 
 			self.buy() # 買い
 		elif crossover(self.ma2, self.ma1): # ma1がma2を下回った時（つまりデッドクロス）
-			self.position.close() # 売り
-			self.sell() # 買い
+			self.sell() # 売り
 
 bt = Backtest(
-	data[-10000:],
+	data,
 	SmaCross,
 	cash=lot,
-	commission=pips_yen,
+	commission=spread_pips,
 	margin=1,
 	exclusive_orders=True)
 
-stats = bt.run() # バックテストを実行
-bt.plot()
+# stats = bt.run() # バックテストを実行
+# bt.plot()
 # print(stats) # バックテストの結果を表示
 periods = dict({	"n1min":1,
-				"n1max":13,
-				"n1step":3,
-				"n2min":1,
-				"n2max":25,
-				"n2step":3
+				"n1max":24*30*2,
+				"n2min":5,
+				"n2max":24*30*6
 				})
 
-r_n1 = range(periods["n1min"],periods["n1max"],periods["n1step"])
-r_n2 = range(periods["n2min"],periods["n2max"],periods["n2step"])
-output2 = bt.optimize(n1=r_n1,n2=r_n2,maximize="Equity Final [$]", constraint=lambda p: p.n1 < p.n2) # 最適化バックテスト実行
 
-print(output2)
-print("test range n1=",r_n1, "n2=", r_n2)
-print("best param =",output2["_strategy"])
+status_skopt, heatmap, optimize_result = bt.optimize(
+	n1=[periods["n1min"],periods["n1max"]],
+	n2=[periods["n2min"],periods["n2max"]],
+	maximize="Equity Final [$]", 
+	constraint=lambda p: p.n1 < p.n2,
+	method="skopt",
+	max_tries=200,
+	return_heatmap=True,
+	return_optimization=True) # 最適化バックテスト実行
 
+print(heatmap.sort_values().iloc[-3:])
+print(status_skopt["_trades"])
+# display heatmap
+# _ = plot_objective(optimize_result, n_points=10)
+plt.hist(status_skopt["_trades"]["Size"])
+plt.show()
+# simuparams = str()
 
-simuparams = str()
-for period in periods.values(): simuparams += str(period).zfill(4)
-simuparams += str(output2["_strategy"])
-
-output2['_trades'].to_csv(simuparams+".csv")
+status_skopt["_trades"].to_csv("n1:",str(heatmap.sort_values().iloc[-1,0])+"_n2:",str(heatmap.sort_values().iloc[-1,1]),"_SmaCross.csv")
 # bt.plot()
