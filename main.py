@@ -7,20 +7,23 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
 from skopt.plots import plot_objective
+import scipy.stats as stats
 
 data = pd.read_pickle('datas.pkl')# read data
 dataPeriod = 30# minute
 
 lot = 100000
 slippage_pips = 1
-spread_pips =0.002# 0.2銭 楽天
+spread_pips =0#.002# 0.2銭 楽天
 
 def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
 
+# Openの価格で常に取引
+
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 575 #hours
-	n2  = 722 #hours
+	n1= 12 #hours
+	n2  = 24*2 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
@@ -28,9 +31,9 @@ class SmaCross(Strategy): # 今回はサンプルとして良く採用される�
 
 	def next(self): # ヒストリカルデータの行ごとに呼び出される処理
 		if crossover(self.ma1, self.ma2): # ma1がma2を上回った時（つまりゴールデンクロス）
-			self.buy() # 買い
+			self.buy(size=1) # 買い
 		elif crossover(self.ma2, self.ma1): # ma1がma2を下回った時（つまりデッドクロス）
-			self.sell() # 売り
+			self.sell(size=1) # 売り
 
 bt = Backtest(
 	data,
@@ -40,8 +43,13 @@ bt = Backtest(
 	margin=1,
 	exclusive_orders=True)
 
-# stats = bt.run() # バックテストを実行
+stats = bt.run() # バックテストを実行
 # bt.plot()
+plt.hist(stats["_trades"]["PnL"])#損益ヒストグラム
+print(len(stats["_trades"]["PnL"]))
+plt.show()
+'''
+
 # print(stats) # バックテストの結果を表示
 periods = dict({	"n1min":1,
 				"n1max":24*30*2,
@@ -70,3 +78,5 @@ plt.show()
 
 status_skopt["_trades"].to_csv("n1:",str(heatmap.sort_values().iloc[-1,0])+"_n2:",str(heatmap.sort_values().iloc[-1,1]),"_SmaCross.csv")
 # bt.plot()
+
+'''
