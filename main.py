@@ -7,7 +7,7 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
 from skopt.plots import plot_objective
-import scipy.stats as stats
+import scipy.stats as stat
 
 data = pd.read_pickle('datas.pkl')# read data
 dataPeriod = 30# minute
@@ -47,6 +47,7 @@ stats = bt.run() # バックテストを実行
 # bt.plot()
 plt.hist(stats["_trades"]["PnL"])#損益ヒストグラム
 print(len(stats["_trades"]["PnL"]))
+print("shapiro normal dist =",stat.shapiro(stats["_trades"]["PnL"]))
 plt.show()
 '''
 
