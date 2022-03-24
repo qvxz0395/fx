@@ -22,8 +22,8 @@ def SMA(values,n):# n: hours
 # Openの価格で常に取引
 
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 12 #hours
-	n2  = 24*2 #hours
+	n1= 24*10 #hours
+	n2  = 24*30 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
