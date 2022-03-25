@@ -12,9 +12,9 @@ import scipy.stats as stat
 data = pd.read_pickle('datas.pkl')# read data
 dataPeriod = 30# minute
 
-lot = 100000
+lot = 1000
 slippage_pips = 1
-spread_pips =0#.002# 0.2銭 楽天
+spread_pips =.002# 0.2銭 楽天
 
 def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
@@ -22,8 +22,8 @@ def SMA(values,n):# n: hours
 # Openの価格で常に取引
 
 class SmaCross(Strategy): # 今回はサンプルとして良く採用される単純移動平均線（SMA）の交差を売買ルールに。
-	n1= 24*10 #hours
-	n2  = 24*30 #hours
+	n1= 250 #hours
+	n2  = 2668 #hours
 	def init(self): # 初期設定（移動平均線などの値を決める）
 		price = self.data.Close
 		self.ma1 = self.I(SMA, price, self.n1) # 短期の移動平均線
@@ -31,9 +31,9 @@ class SmaCross(Strategy): # 今回はサンプルとして良く採用される�
 
 	def next(self): # ヒストリカルデータの行ごとに呼び出される処理
 		if crossover(self.ma1, self.ma2): # ma1がma2を上回った時（つまりゴールデンクロス）
-			self.buy(size=1) # 買い
+			self.buy() # 買い
 		elif crossover(self.ma2, self.ma1): # ma1がma2を下回った時（つまりデッドクロス）
-			self.sell(size=1) # 売り
+			self.sell() # 売り
 
 bt = Backtest(
 	data,
@@ -44,13 +44,17 @@ bt = Backtest(
 	exclusive_orders=True)
 
 stats = bt.run() # バックテストを実行
+print(stats)
 # bt.plot()
-plt.hist(stats["_trades"]["PnL"])#損益ヒストグラム
-print(len(stats["_trades"]["PnL"]))
-print("shapiro normal dist =",stat.shapiro(stats["_trades"]["PnL"]))
+# PnL: ポートフォリオの価値((トレード損益)+(今回のポートフォリオ価値ー前回のポートフォリオ価値))
+# トレード損益：ポジションの決済金額ーポジション構築金額
+# ReturnPct: 損益率.これを検定するべき
+plt.hist(stats["_trades"]["ReturnPct"])#損益ヒストグラム
+print(stats["_trades"])
+print("shapiro normal dist =",stat.shapiro(stats["_trades"]["ReturnPct"]))
 plt.show()
+stats["_trades"].to_csv("test.csv")
 '''
-
 # print(stats) # バックテストの結果を表示
 periods = dict({	"n1min":1,
 				"n1max":24*30*2,
@@ -73,8 +77,9 @@ print(heatmap.sort_values().iloc[-3:])
 print(status_skopt["_trades"])
 # display heatmap
 # _ = plot_objective(optimize_result, n_points=10)
-plt.hist(status_skopt["_trades"]["Size"])
+plt.hist(status_skopt["_trades"]["PnL"])
 plt.show()
+print("shapiro normal dist =",stat.shapiro(status_skopt["_trades"]["PnL"]))
 # simuparams = str()
 
 status_skopt["_trades"].to_csv("n1:",str(heatmap.sort_values().iloc[-1,0])+"_n2:",str(heatmap.sort_values().iloc[-1,1]),"_SmaCross.csv")
