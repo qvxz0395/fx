@@ -14,7 +14,7 @@ dataPeriod = 30# minute
 
 lot = 1000
 slippage_pips = 1
-spread_pips =.002# 0.2銭 楽天
+spread_pips =.002# 0.2銭(=%) 楽天
 
 def SMA(values,n):# n: hours
 	return pd.Series(values).rolling(int(n*60/dataPeriod)).mean()
@@ -67,7 +67,7 @@ def get_X(data):# 特徴量だけを抜き出す
 
 def get_y(data):# 7日前の特徴量が0近傍奈良ゼロ，一定以上なら1，以下なら-1という評価をすべての列に対して実行
 	"""Return dependent variable y"""
-	y = data.Close.pct_change(48).shift(-48*7)  # Returns after roughly one days
+	y = data.Close.pct_change(48*2).shift(-48*2)  # Returns after roughly one days
 	y[y.between(-.004, .004)] = 0             # Devalue returns smaller than 0.4%
 	y[y > 0] = 1
 	y[y < 0] = -1
@@ -92,11 +92,12 @@ N_TRAIN = 400
 
 
 class MLTrainOnceStrategy(Strategy):
-	price_delta = .004  # 0.4%　ロスカット
+	price_delta_int = 4# 0.4%　ロスカット
 
 	def init(self):        
 		# Init our model, a kNN classifier
 		self.clf = KNeighborsClassifier(9)
+		self.price_delta = self.price_delta_int*0.001
 
 		# Train the classifier in advance on the first N_TRAIN examples
 		df = self.data.df.iloc[:N_TRAIN]
@@ -146,9 +147,15 @@ class MLTrainOnceStrategy(Strategy):
 					trade.sl = min(trade.sl, high)
 
 
-bt = Backtest(data[-10000:], MLTrainOnceStrategy, commission=0, margin=1)
-stats = bt.run() # バックテストを実行
+bt = Backtest(data, MLTrainOnceStrategy, commission=spread_pips, margin=1)
+stats,heatmap = bt.optimize(
+	price_delta_int=range(4,120,20),
+	max_tries=200,
+	random_state=0,
+	return_heatmap=True
+) # バックテストを実行
 print(stats)
+print(heatmap.sort_values().iloc[-3:])
 # bt.plot()
 # PnL: ポートフォリオの価値((トレード損益)+(今回のポートフォリオ価値ー前回のポートフォリオ価値))
 # トレード損益：ポジションの決済金額ーポジション構築金額
@@ -156,4 +163,5 @@ print(stats)
 plt.hist(stats["_trades"]["ReturnPct"])#損益ヒストグラム
 print(stats["_trades"])
 print("k-means機械学習の損益率のシャピロウィルクテストP値 =",stat.shapiro(stats["_trades"]["ReturnPct"]))
+print("k-means機械学習の損益率のウィルコクソンの順位和検定P値 =",stat.wilcoxon(stats["_trades"]["ReturnPct"]))
 plt.show()
