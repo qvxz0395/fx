@@ -54,13 +54,13 @@ class BBand_forward_Strategy(Strategy):
 				self.sell()
 
 bt = Backtest(
-	data[-10000:],
+	data,
 	BBand_forward_Strategy,
 	cash=lot,
-	commission=0,
+	commission=spread_pips,
 	margin=1,
 	exclusive_orders=True)
-
+'''
 stats = bt.run() # バックテストを実行
 print(stats)
 bt.plot()
@@ -70,4 +70,20 @@ bt.plot()
 plt.hist(stats["_trades"]["ReturnPct"])#損益ヒストグラム
 print(stats["_trades"])
 print("shapiro normal dist =",stat.shapiro(stats["_trades"]["ReturnPct"]))
+plt.show()
+
+'''
+
+stats,heatmap = bt.optimize(
+	n_lookback=range(24*1,24*30,5),
+	maximize='Equity Final [$]',
+	max_tries=200,
+	random_state=0,
+	return_heatmap=True)
+print(stats)
+print(heatmap.sort_values().iloc[-3:])
+plt.hist(stats["_trades"]["ReturnPct"])#損益ヒストグラム
+print(stats["_trades"])
+print("BBand順張りの損益率のシャピロウィルクテストP値 =",stat.shapiro(stats["_trades"]["ReturnPct"]))
+print("BBand順張りの損益率のウィルコクソンの順位和検定P値 =",stat.wilcoxon(stats["_trades"]["ReturnPct"]))
 plt.show()
