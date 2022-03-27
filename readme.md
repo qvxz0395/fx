@@ -62,7 +62,7 @@ https://yuyasugano.medium.com/backtesting-py%E3%82%92%E3%81%AF%E3%81%98%E3%82%81
 ## BBand
 ### 順張り
 1~30daySMA　の　BBand 最適パラメータn=694　リターン-15% 　P値8.87e-06 有意に損益
-30~30x6daySMA の　BBand　最適パラメータ
+30~30x6daySMA の　BBand　最適パラメータn=1330 リターン6.7% P値0.0519 帰無仮説採択によって有意に利益は発生していると言い難い．
 
 ## Ichimoku
 

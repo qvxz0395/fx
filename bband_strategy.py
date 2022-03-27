@@ -75,7 +75,7 @@ plt.show()
 '''
 
 stats,heatmap = bt.optimize(
-	n_lookback=range(24*1,24*30,5),
+	n_lookback=range(24*30,24*30*6+10,10),
 	maximize='Equity Final [$]',
 	max_tries=200,
 	random_state=0,
